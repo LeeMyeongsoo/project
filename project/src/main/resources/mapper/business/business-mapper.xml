@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper의 위치 -->
+<mapper namespace="com.site.business.BsMapper">
+
+<!-- 업체 리스트 출력 -->
+	<select id="businessList" resultType="com.site.vo.StoreVo">
+		<!-- select sid,name,email,store_name,store_addr,store_tel from store -->
+		select * from
+			(select rownum rnum,s.* from
+			(select * from 
+			store
+			<where>
+			  <if test="category == null">
+			     
+			  </if>
+			  <if test='category == "all"'> 
+			     store_name like '%'||#{searchWord}||'%' or name like '%'||#{searchWord}||'%'
+			  </if>
+			  <if test='category == "name"'> 
+			     name like '%'||#{searchWord}||'%' 
+			  </if>
+			  <if test='category == "store_name"'> 
+			     store_name like '%'||#{searchWord}||'%' 
+			  </if>
+			</where>
+			order by sid asc) s) where rnum between #{startrow} and #{endrow}
+	</select>
+
+<!-- 업체리스트 총 개수 : 전체,검색 -->
+	<select id="businessListCount" resultType="int">
+	       select count(*) from store
+	       <where>
+			  <if test="category == null">
+			  </if>
+			  <if test='category == "all"'> 
+			     store_name like '%'||#{searchWord}||'%' or name like '%'||#{searchWord}||'%'
+			  </if>
+			  <if test='category == "name"'>
+			     name like '%'||#{searchWord}||'%' 
+			  </if>
+			  <if test='category == "store_name"'> 
+			     store_name like '%'||#{searchWord}||'%' 
+			  </if>
+			</where>
+	</select>
+	
+	<select id="businessView" resultType="com.site.vo.StoreVo">
+   <!-- select p.id,s.store_name,p.name,p.price,s.store_addr,p.picture,s.store_tel,s.email 
+   from store s, product p where s.id=#{id} -->
+   select p.id,s.store_name,p.name,p.price,s.store_addr,p.picture,s.store_tel,s.email from 
+   store s,product p where p.store_id = s.id and s.id=#{id}
+  </select>
+  
+</mapper>

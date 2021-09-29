@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<!-- namespace는 Mapper의 위치 -->  
+<mapper namespace="com.site.member.MemberMapper">
+
+<!-- id는 Mapper에서 호출한 메소드명 -->
+<!-- resultType은 반환값 -->
+<!-- parameterType은 받는 매개변수 형 -->
+
+	<!-- 아이디만으로 찾기 -->
+	<select id="selectId" resultType="com.site.vo.MemberVo">
+		select * from member where id=#{id}
+	</select>
+	
+	<!-- 회원가입 아이디 체크 -->
+	<select id="registerCheckId" resultType="int">
+		select count(*) from member where id=#{id}
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="register" parameterType="com.site.vo.MemberVo">
+		insert into member(id, pw, nickname, name, dob, gender, email, tel, addr, addr1, email_flag, sms_flag, point, rank, picture) values(#{id}, #{pw}, #{nickname}, #{name}, #{dob}, #{gender}, #{email}, #{tel}, #{addr}, #{addr1}, #{email_flag}, #{sms_flag}, #{point}, #{rank}, #{picture})
+	</insert>
+	
+	<!--★★★★★★★★★★★ 명수 ★★★★★★★★★★★-->
+	<!-- 회원정보 수정 -->
+	<update id="update" parameterType="com.site.vo.MemberVo">
+		update member set pw=#{pw}, nickname=#{nickname}, name=#{name}, dob=#{dob}, gender=#{gender}, email=#{email}, tel=#{tel},
+		addr=#{addr}, addr1=#{addr1}, email_flag=#{email_flag}, sms_flag=#{sms_flag}, point=#{point}, rank=#{rank}, picture=#{picture} where id=#{id}
+	</update>
+	<!--★★★★★★★★★★★ 끝 ★★★★★★★★★★★-->
+	
+	<!-- __________기원______________ -->
+	<select id="memberInfoList" resultType="com.site.vo.MemberVo" parameterType="com.site.vo.MemberVo">
+	select * from member where id=#{id}
+	</select>
+
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper의 위치 -->  
+<mapper namespace="com.site.map.MapMapper">
+<select id="storeListSelect" resultType="com.site.vo.StoreVo">
+select * from store
+</select>
+<!-- id는 Mapper에서 호출한 메소드명 -->
+<!-- resultType은 반환값 -->
+<!-- parameterType은 받는 매개변수 형 -->
+</mapper>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.site.notice_board.Notice_BoardMapper">
+
+	<!-- 게시판 리스트 : 전체,검색 -->
+	<select id="selectBoardList"
+		resultType="com.site.vo.Notice_BoardVo">
+		select * from
+		(select rownum rnum,n.* from 
+		(select * from 
+		notice_board
+		<where>
+			<if test="category == ''">
+				ncategory = 'notice'
+			</if>
+			
+			<if test='category == "ball"'>
+				ncategory = 'notice' and(ntitle like '%'||#{searchWord}||'%' or ncontent like
+				'%'||#{searchWord}||'%')
+			</if>
+			<if test='category == "btitle"'>
+				ncategory = 'notice' and(ntitle like '%'||#{searchWord}||'%')
+			</if>
+			<if test='category == "bcontent"'>
+				ncategory = 'notice' and(ncontent like '%'||#{searchWord}||'%')
+			</if>
+		</where>
+		order by id desc) n)
+		where rnum between #{startrow} and #{endrow}
+	</select>
+
+	<!-- 게시글 총 수 : 전체,검색 -->
+	<select id="selectListCount" resultType="int">
+		select count(*) from notice_board
+		<where>
+			<if test="category == ''">
+			</if>
+			<if test='category == "ball"'>
+				ntitle like '%'||#{searchWord}||'%' or ncontent like
+				'%'||#{searchWord}||'%'
+			</if>
+			<if test='category == "btitle"'>
+				ntitle like '%'||#{searchWord}||'%'
+			</if>
+			<if test='category == "bcontent"'>
+				ncontent like '%'||#{searchWord}||'%'
+			</if>
+		</where>
+	</select>
+
+	<!-- 게시글 뷰 1개 -->
+	<select id="selectBoardView"
+		resultType="com.site.vo.Notice_BoardVo">
+		select * from notice_board where id=#{id}
+	</select>
+
+	<!-- 게시글 이전글 -->
+	<select id="selectBoardViewPre"
+		resultType="com.site.vo.Notice_BoardVo">
+		select * from
+		(select rownum rnum,n.* from
+		(select * from notice_board
+		order by
+		id desc) n)
+		where rnum=(select rnum from
+		(select rownum rnum,n.* from
+		(select * from notice_board
+		order by id desc) n)
+		where id=#{id})-1
+
+	</select>
+
+	<!-- 게시글 다음글 -->
+	<select id="selectBoardViewNext"
+		resultType="com.site.vo.Notice_BoardVo">
+		select * from
+		(select rownum rnum,n.* from
+		(select * from notice_board
+		order by
+		id desc) n)
+		where rnum=(select rnum from
+		(select rownum rnum,n.* from
+		(select * from notice_board
+		order by id desc) n)
+		where id=#{id})+1
+	</select>
+
+
+
+
+	<update id="updateBhitAdd">
+	       <![CDATA[
+		       update notice_board set nhit=nhit+1
+			   where id=#{id}
+		   ]]>
+	</update>
+
+	<!-- 게시글 수정 -->
+	<update id="updateBoardModify">
+	       <![CDATA[
+		       update notice_board set ntitle=#{ntitle},ncontent=#{ncontent},nupload=#{nupload}
+			   where id=#{id}
+		   ]]>
+	</update>
+
+	<!-- 게시글 삭제 -->
+	<delete id="deleteBoardDelete">
+		delete notice_board where id=#{id}
+	</delete>
+
+	<!-- 게시글 추가 -->
+	<insert id="insertBoardWrite">
+	     <![CDATA[
+	      insert into notice_board (id,ntitle, ncontent, ndate, nupload, nhit,ncategory)values(notice_board_seq.nextval,#{ntitle},#{ncontent},sysdate,#{nupload},0,'notice')
+		  
+		]]>
+	</insert>
+
+</mapper>

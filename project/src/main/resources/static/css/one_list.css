@@ -1,0 +1,28 @@
+#body_header{
+    width: 100%;
+    height: 250px;
+    background-color: blanchedalmond;
+    border: 1px solid black;
+}
+
+#body_title{
+	position:relative;
+    width: 100%;
+    height: 150px;
+}
+
+#body_title h1{
+   text-align: center;
+}
+
+#body_check{
+    width: 100%;
+}
+/* #body_check select{
+	
+} */
+#check_text{
+    display: inline-block;
+    width: 30%;
+    border: 1px solid black;
+}

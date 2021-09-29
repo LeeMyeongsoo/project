@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<!-- namespace는 Mapper의 위치 -->  
+<mapper namespace="com.site.product.ProductMapper">
+
+<!-- id는 Mapper에서 호출한 메소드명 -->
+<!-- resultType은 반환값 -->
+<!-- parameterType은 받는 매개변수 형 -->
+
+	<!-- 상품 등록 -->
+	<insert id="productRegister">
+		insert into product(name, picture, rate, price, store_id, classification, cook_time, quantity, content, serving) values(#{name}, #{picture}, #{rate}, #{price}, #{store_id}, #{classification}, #{cook_time}, #{quantity}, #{content}, #{serving})
+	</insert>
+	
+	<!-- 상품 수정 -->
+	<update id="productModify">
+		update product set name=#{name},picture=#{picture},rate=#{rate},price=#{price},store_id=#{store_id},classification=#{classification},cook_time=#{cook_time},quantity=#{quantity},content=#{content},serving=#{serving} where id=#{id}
+	</update>
+	
+	<!-- 상품 리스트 카운트 -->
+	<select id="productCountSelect" resultType="int">
+		select count(*) from (select b.* from (select p.*,s.store_name from product p, store s where p.store_id = s.id) b
+		<where>
+			<if test='category == "all"'>
+			(b.store_name like '%'||#{searchWord}||'%' and b.classification like '%'||#{classification}||'%' and b.cook_time like '%'||#{cook_time}||'%')
+			or (b.name like '%'||#{searchWord}||'%' and b.classification like '%'||#{classification}||'%' and b.cook_time like '%'||#{cook_time}||'%')
+			</if>
+			<if test="category!='all'">
+				b.${category} like '%'||#{searchWord}||'%' and b.classification like '%'||#{classification}||'%' and b.cook_time like '%'||#{cook_time}||'%'
+			</if>
+			order by b.id desc)
+		</where>
+	</select>
+	
+	<!-- 상품 1개 select -->
+	<select id="productOneSelect" resultType="com.site.vo.ProductVo">
+		select * from product where id=#{id}
+	</select>
+	
+	<!-- 상품 1개 select 매장 정보 -->
+	<select id="storeOneSelect" resultType="com.site.vo.StoreVo">
+		select * from store where id=#{id}
+	</select>
+	
+	<!-- 상품 리스트 -->
+	<select id="productList" resultType="com.site.vo.ProductVo">
+		select * from
+		(select rownum rnum,a.* from 
+		(select b.* from (select p.*,s.store_name from product p, store s where p.store_id = s.id) b
+		<where>
+			<if test='category == "all"'>
+				(b.store_name like '%'||#{searchWord}||'%' and b.classification like '%'||#{classification}||'%' and b.cook_time like '%'||#{cook_time}||'%')
+				or (b.name like '%'||#{searchWord}||'%' and b.classification like '%'||#{classification}||'%' and b.cook_time like '%'||#{cook_time}||'%')
+			</if>
+			<if test="category!='all'">
+				b.${category} like '%'||#{searchWord}||'%' and b.classification like '%'||#{classification}||'%' and b.cook_time like '%'||#{cook_time}||'%'
+			</if>
+		</where>
+		order by id desc) a)
+		where rnum between #{startRow} and #{endRow}
+	</select>
+	
+	<!-- 상품 1개 삭제 -->
+	<delete id="productDelete">
+		delete product where id = #{id}
+	</delete>
+	
+	<!-- 상품 rate update -->
+	<update id="productRateUpdate">
+		update product set rate=(select sum(rate)/count(*) from review where product_id=#{product_id} group by product_id) where id=#{product_id}
+	</update>
+	
+	<!-- 상품 top3 출력 -->
+	
+	<select id="productTopList" resultType="com.site.vo.ProductVo">
+		<![CDATA[
+			select * from product where rownum<=3 order by rate desc
+		]]>
+	</select>
+</mapper>

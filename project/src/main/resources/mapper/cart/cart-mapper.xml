@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper의 위치 -->
+<mapper namespace="com.site.cart.CartMapper">
+
+	<select id="cartSelectOne" parameterType="com.site.vo.CartVo" resultType="int">
+		select count(*) from cart where product_id=#{product_id} and member_id=#{member_id} and status='N'
+	</select>
+	
+	<!-- 장바구니 담기 -->
+	<insert id="cartInsert" parameterType="com.site.vo.CartVo">
+		insert into cart(member_id, product_id, amount, status) values(#{member_id}, #{product_id}, #{amount}, #{status})
+	</insert>
+	
+	<!-- 카트에 동일 상품 있을 시 업데이트 -->
+	<update id="cartUpdateOne">
+		update cart set amount=(amount+#{amount}) where product_id=#{product_id} and member_id=#{member_id} and status='N'
+	</update>
+	
+	<!-- 장바구니 리스트 출력 -->
+	<select id="memberCartList" resultType="com.site.vo.CartVo">
+		select p.name product_name, p.price, p.picture, c.id, c.amount, p.quantity from product p, cart c 
+		where p.id = c.product_id and c.member_id=#{member_id} and status='N'
+	</select>
+	
+	<!-- 장바구니 수량 변경 업데이트 -->
+	<update id="cartAmountUpdate">
+		update cart set amount=#{amount} where id=#{id} and status='N'
+	</update>
+	
+	<!-- 장바구니 선택 삭제 -->
+	<delete id="cartOneDel">
+		delete from cart where id=#{id} and status='N'
+	</delete>
+	
+	<!-- 장바구니 전체 삭제 -->
+	<delete id="cartAllDel" parameterType="com.site.vo.CartVo">
+		delete from cart where member_id=#{member_id} and status='N'
+	</delete>
+	
+	<!-- 선택한상품만 주문 리스트 출력 -->
+	<select id="orderCartList" resultType="com.site.vo.CartVo">
+		select p.name product_name, p.price, p.picture, c.id, c.amount from product p, cart c 
+		where p.id = c.product_id and c.id=#{list}
+	</select>
+	
+</mapper>

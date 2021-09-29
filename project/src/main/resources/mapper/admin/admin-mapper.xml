@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper의 위치 -->
+<mapper namespace="com.site.admin.AdminMapper">
+
+	<!-- 회원정보 리스트 카운트 -->
+	<select id="memberListCount" resultType="int" parameterType="string">
+		select count(*) from member
+		<where>
+			<if test="(searchWord != null and searchWord != '') and (category != null and category != '')">
+			<!-- <if test="(searchWord != null or searchWord != '') and (category != null or category != '')"> -->
+				${category} = #{searchWord}
+			</if>
+			<if test="(searchWord != null and searchWord != '') and (category == null or category == '')">
+				id=#{searchWord} or pw=#{searchWord} or nickname=#{searchWord} or name=#{searchWord} or dob=#{searchWord} or email=#{searchWord} or tel=#{searchWord} or point=#{searchWord} or rank=#{searchWord}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 회원정보 리스트 출력 -->
+	<select id="memberList" resultType="com.site.vo.MemberVo">
+		select * from
+		(select rownum rnum, m.* from (select * from member
+		<where>
+			<if test="(searchWord != null and searchWord != '') and (category != null and category != '')">
+				${category} = #{searchWord}
+			</if>
+			<if test="(searchWord != null and searchWord != '') and (category == null or category == '')">
+				id=#{searchWord} or pw=#{searchWord} or nickname=#{searchWord} or name=#{searchWord} or dob=#{searchWord} or email=#{searchWord} or tel=#{searchWord} or point=#{searchWord} or rank=#{searchWord}
+			</if>
+		</where>
+		<if test="category == null or category == ''">
+			order by mid ${order}
+		</if>
+		<if test="category != null and category != ''">
+			order by ${category} ${order}
+		</if>
+		) m) where rnum between #{startRow} and #{endRow}
+	</select>
+	
+	<!-- 회원정보 삭제 -->
+	<delete id="memberDelete" parameterType="string">
+		delete from member where id = #{id}
+	</delete>
+	
+	<!-- __________________________________챠트 관련______________________________________ -->
+	
+	<select id="orderView" resultType="com.site.vo.ChartVo">
+		<![CDATA[
+			select to_char(sysdate,'yyyy') year,to_char(b.dt, 'mm')
+			month, nvl(sum(amount*price),0) totalPrice, nvl(count(o.order_date),0)
+			totalAmount from
+			(select to_date(o.order_date, 'yyyy/mm/dd')
+			order_date, o.refund_flag
+			refund_flag, c.amount amount, p.price price
+			from ordered o, cart c,
+			product p where o.cart_id = c.id and
+			c.product_id=p.id and
+			c.status='Y' and refund_flag='N' and
+			to_char(order_date,'yyyy-mm')
+			between
+			to_char(add_months(sysdate,-5),'yyyy-mm') and
+			to_char(sysdate,'yyyy-mm')) o,
+			(select to_date(sysdate,'yyyy/mm/dd') -
+			level + 1 as dt from dual connect by
+			level <= (to_date(sysdate,
+			'yyyy/mm/dd') -
+			to_date(add_months(sysdate,-5), 'yyyy/mm/dd'))) b
+			where
+			b.dt = o.order_date(+)
+			group by to_char(b.dt, 'mm')
+			order by
+			to_char(b.dt, 'mm')
+		]]>
+	</select>
+
+	<!-- List -->
+	<select id="tableList" resultType="com.site.vo.ChartVo">
+		select name, totalPrice,
+		totalAmount, refund_flag, sum(totalPrice)
+		over(partition by
+		refund_flag) refundPrice, sum(totalAmount)
+		over(partition by
+		refund_flag) refundAmount from
+		(select p.name name,
+		sum(p.price*c.amount) totalPrice, sum(c.amount)
+		totalAmount,
+		o.refund_flag refund_flag
+		from product p, cart c, ordered o
+		where
+		p.id=c.product_id and c.id=o.cart_id and c.status='Y'
+		group by name,
+		refund_flag
+		order by name)
+	</select>
+
+	<!-- summary -->
+	<select id="tableSummary" resultType="com.site.vo.ChartVo">
+		select sum(합계금액) totalPrice, sum(수량) totalAmount, 환불여부 refund_flag from
+		(select p.name 상품명, sum(p.price*c.amount) 합계금액, sum(c.amount) 수량,
+		o.refund_flag 환불여부
+		from product p, cart c, ordered o
+		where
+		p.id=c.product_id and c.id=o.cart_id and c.status='Y'
+		group by name,
+		refund_flag
+		order by name) a,
+		<!-- 이부분 필요한건지?? -->
+		(select 'null' as 상품명 from dual) b
+		where
+		a.상품명=b.상품명(+)
+		<!-- 요기까지 -->
+		group by 환불여부
+	</select>
+	
+</mapper>

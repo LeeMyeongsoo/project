@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<!-- namespace는 Mapper의 위치 -->  
+<mapper namespace="com.site.store.StoreMapper">
+
+<!-- id는 Mapper에서 호출한 메소드명 -->
+<!-- resultType은 반환값 -->
+<!-- parameterType은 받는 매개변수 형 -->
+
+	<!-- 아이디만으로 찾기 -->
+	<select id="selectId" resultType="com.site.vo.StoreVo">
+		select * from store where id=#{id}
+	</select>
+	
+	<!-- 회원가입 아이디 체크 -->
+	<select id="registerCheckId" resultType="int">
+		select count(*) from store where id=#{id}
+	</select>
+
+	<!-- 회원가입 -->
+	<insert id="register">
+		insert into store(id, pw, nickname, name, dob, gender, email, tel, store_name, store_addr, store_tel, open_hour, close_day, order_way, delivery_fee, delivery_area, store_picture, email_flag, sms_flag) values(#{id}, #{pw}, #{nickname}, #{name}, #{dob}, #{gender}, #{email}, #{tel}, #{store_name}, #{store_addr}, #{store_tel}, #{open_hour}, #{close_day}, #{order_way}, #{delivery_fee}, #{delivery_area}, #{store_picture}, #{email_flag}, #{sms_flag})
+	</insert>
+	
+	<!-- ○○○○○○○○○○○○○ 시원 ○○○○○○○○○○○○○○○ -->
+	<!-- 상품조회 -->
+	<select id="storeProductList" resultType="com.site.vo.ProductVo">
+		select p.*,s.store_name from product p, store s where p.store_id = s.id and s.id=#{id} order by s.id desc
+	</select>
+	
+	<!-- 상품조회 갯수 -->
+	<select id="storeProductCount" resultType="int">
+		select count(*) from product p,store s where p.store_id = s.id and s.id=#{id}
+	</select>
+	
+	<!-- 상품검색 -->
+	<select id="searchListSelect" resultType="com.site.vo.ProductVo">
+		select p.*,s.store_name from product p, store s where p.store_id = s.id and s.id=#{id} and p.name like '%'||#{searchWord}||'%' order by s.id desc
+	</select>
+	<!-- ○○○○○○○○○○○○○ 끝 ○○○○○○○○○○○○○○○ -->
+	
+	<!--★★★★★★★★★★★ 명수 ★★★★★★★★★★★-->
+	<!-- 판매자정보 수정 -->
+	<update id="update" parameterType="com.site.vo.StoreVo">
+		update store set pw=#{pw}, nickname=#{nickname}, gender=#{gender}, email=#{email}, tel=#{tel},
+		store_name=#{store_name}, store_addr=#{store_addr}, store_tel=#{store_tel}, open_hour=#{open_hour}, close_day=#{close_day},
+		order_way=#{order_way}, delivery_fee=#{delivery_fee}, delivery_area=#{delivery_area}, store_picture=#{store_picture}, email_flag=#{email_flag},
+		sms_flag=#{sms_flag} where id=#{id}
+	</update>
+	<!--★★★★★★★★★★★ 끝 ★★★★★★★★★★★-->
+	
+</mapper>

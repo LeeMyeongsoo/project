@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.site.one_board.One_BoardMapper">
+
+     <!--리스트  -->
+	<select id="selectBoardList"
+		resultType="com.site.vo.One_BoardVo">
+
+		select * from
+		(select rownum rnum,o.* from
+		(select * from
+		one_board
+	<where>
+			<if test="category == ''">
+
+		    </if>
+		  	<if test="category != ''">
+			   bcategory = #{category} and
+		    </if>
+			<if test="category1 == ''">
+
+			</if>
+			<if test="category1 == 'oall'">
+				(btitle like '%'||#{searchword}||'%' or bcontent like '%'||#{searchword}||'%'or bname like '%'||#{searchword}||'%')
+			</if>
+			<if test="category1 == 'one_title'">
+				(btitle like '%'||#{searchword}||'%')
+			</if>
+			<if test="category1 == 'one_content'">
+				(bcontent like '%'||#{searchword}||'%')
+			</if>
+			<if test="category1 == 'one_name'">
+				(bname like '%'||#{searchword}||'%')
+			</if>
+
+			</where>
+		order by bgroup desc,bstep asc) o)
+	</select>
+	
+		<!--카운트  -->
+	<select id="selectListCount" resultType="int">
+	
+		select count(*) from one_board
+		<where>
+		 <if test="category != ''">
+			   bcategory = #{category} and
+		    </if>
+			
+			<if test="category1 == ''">
+
+			</if>
+			<if test="category1 == 'oall'">
+				btitle like '%'||#{searchword}||'%' or bcontent like '%'||#{searchword}||'%'or bname like '%'||#{searchword}||'%'
+			</if>
+			<if test="category1 == 'one_title'">
+				btitle like '%'||#{searchword}||'%'
+			</if>
+			<if test="category1 == 'one_content'">
+				bcontent like '%'||#{searchword}||'%'
+			</if>
+			<if test="category1 == 'one_name'">
+				bname like '%'||#{searchword}||'%'
+			</if>
+			</where>
+
+	</select>
+	
+	<!-- 게시글 추가 -->
+	<insert id="insertBoardWrite">
+	     <![CDATA[
+	      insert into one_board (id, member_id,member_type ,bcategory, btitle, bcontent,bname, bdate, bupload, bhit, bgroup, bstep, bindent) values(
+		  one_board_seq.nextval, #{member_id},#{member_type}, #{bcategory}, #{btitle}, #{bcontent}, #{bname}, sysdate, #{bupload}, 0, 1, #{bstep}, #{bindent})
+		]]>
+     <!--게시글 뷰   -->
+		
+	</insert>
+	
+		<select id="selectBoardView"
+		resultType="com.site.vo.One_BoardVo">
+		select * from one_board where id=#{id}
+	</select>
+	
+	<!-- 조회수 증가  -->
+	<update id="updateBhitAdd">
+	       <![CDATA[
+		       update one_board set bhit=bhit+1
+			   where id=#{id}
+		   ]]>
+	</update>
+	
+	<!-- 게시글 이전글 -->
+	<select id="selectBoardViewPre" resultType="com.site.vo.One_BoardVo">
+	        select * from
+			(select rownum rnum,o.* from
+			(select * from one_board
+			order by bgroup desc,bstep asc) o)
+			where rnum=(select rnum from
+			(select rownum rnum,o.* from
+			(select * from one_board
+			order by bgroup desc,bstep asc) o)
+			where id=#{id})-1
+	</select>
+	
+	<!-- 게시글 다음글 -->
+	<select id="selectBoardViewNext" resultType="com.site.vo.One_BoardVo">
+	         select * from
+			(select rownum rnum,o.* from
+			(select * from one_board
+			order by bgroup desc,bstep asc) o)
+			where rnum=(select rnum from
+			(select rownum rnum,o.* from
+			(select * from one_board
+			order by bgroup desc,bstep asc) o)
+			where id=#{id})+1
+	</select>
+	
+	<!-- 게시글 삭제 -->
+	<delete id="deleteBoardDelete">
+		delete one_board where id=#{id}
+	</delete>
+	
+		<!-- 게시글 수정 -->
+	<update id="updateBoardModify">
+	       <![CDATA[
+		       update one_board set btitle=#{btitle},bcontent=#{bcontent},bupload=#{bupload}
+			   where id=#{id}
+		   ]]>
+	</update>
+	
+	<!-- bstep 1씩 증가 -->
+
+
+
+<update id="updateBoardReplyStepAdd">
+
+<![CDATA[
+	     update one_board set bstep=bstep+1
+	     where bgroup=#{bgroup} and bstep>#{bstep}
+	      
+	   ]]>
+</update>
+
+<!-- 게시판 답변달기 -->
+
+
+
+<insert id="insertBoardReply">
+
+<![CDATA[
+	      insert into one_board values(
+		  one_board_seq.nextval,#{member_id},#{bcategory},#{btitle},#{bcontent},#{bname},
+		  sysdate,#{bupload},#{bgroup},#{bstep}+1,#{bindent}+1,0)
+		]]>
+</insert>
+
+<!-- /*_______________________시원________________________*/ -->
+<select id="memberBoardList" resultType="com.site.vo.One_BoardVo">
+<![CDATA[
+	      select * from one_board where member_id=#{id} and rownum<=3
+		]]>
+</select>
+
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper의 위치 -->
+<mapper namespace="com.site.order.OrderMapper">
+   <insert id="orderSuccessInsert">
+      insert into ordered values(
+      1,'N','1',sysdate,#{recipient},#{sender},'A',#{cart_id},#{delivery_area}, '')
+   </insert>
+   <!-- 결제완료시 cart테이블 status변경 -->
+   <update id="cartStatusUpdate">
+      update cart set status ='Y' where id=#{cart_id}
+   </update>
+   <!-- product테이블의 Quantity(cart의 수량만큼 -1) -->
+   <update id="productQuantityUpdate">
+      update (select p.quantity,c.amount from product p,
+      cart c where p.id =
+      c.product_id and c.id = #{cart_id}) SET
+      quantity=quantity-amount
+   </update>
+   <!-- member mypage 주문리스트 출력 -->
+   <select id="selectOrderList" resultType="com.site.vo.OrderVo">
+      select o.*,p.picture,p.name,p.id as product_id,p.price*c.amount as price, c.amount,to_char(o.order_date,'YYYY-MM-DD') as orderdate
+      from ordered o,cart c, product p
+      where o.cart_id=c.id and c.product_id=p.id and c.member_id=#{id}
+   </select>
+   
+   <select id="selectStoreOrderList" resultType="com.site.vo.OrderVo">
+      select o.*,p.picture,p.name,p.id as product_id,p.price*c.amount as price, c.amount,to_char(o.order_date,'YYYY-MM-DD') as orderdate
+      from ordered o,cart c, product p, store s
+      where o.cart_id=c.id and c.product_id=p.id and p.store_id=s.id and s.id=#{id}
+   </select>
+   
+   <update id="deliveryStartupdate">
+      update ordered set status='2',delivery_num=#{delivery_num} where id=#{id}
+   </update>
+   
+   <update id="buyAccessUpdate">
+      update ordered set status='6' where id=#{id}
+   </update>
+   
+   <!-- 리뷰 시작 -->
+   
+   <!-- 리뷰 글 저장 -->
+   <insert id="reviewWriteInsert">
+      insert into review values(0,#{member_id},#{product_id},#{rate},#{about},sysdate)
+   </insert>
+   
+   <!-- 리뷰 사진 저장 -->
+   <insert id="reviewPicetureInsert">
+      <selectKey resultType="int" keyProperty="review_id" order="BEFORE">
+           select LAST_NUMBER-1 as id from USER_SEQUENCES where SEQUENCE_NAME = 'REVIEW_SEQ'
+       </selectKey>
+      insert into reviewpicture values(#{review_id},#{safeFile})
+   </insert>
+   
+   <!-- 별점 4개이상 리스트 출력 -->
+   <select id="reviewTopList" resultType="com.site.vo.ReviewVo">
+      <![CDATA[
+         select r.*,p.name from review r, product p where r.rate>=4 and r.product_id=p.id 
+      ]]>
+   </select>
+   
+   <!-- 랜덤 변수의 사진 한개 들고오기 -->
+   <select id="reviewTopPicture" resultType="String">
+      <![CDATA[
+         select name from reviewpicture where rownum=1 and review_id=#{id}
+      ]]>
+   </select>
+   
+   <delete id="refundDelete">
+      delete ordered where id=#{id}
+   </delete>
+   
+   <update id="refundUpdate">
+      update ordered set refund_flag='Y'
+   </update>
+   
+</mapper>
